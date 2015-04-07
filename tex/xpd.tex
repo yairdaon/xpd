@@ -1,0 +1,264 @@
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage{algorithm} % algorithm package
+
+
+\usepackage{sectsty} % Allows customizing section commands
+\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+
+
+
+
+
+
+
+%----------------------------------------------------------------------------------------
+% new commands
+%----------------------------------------------------------------------------------------
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+% boldface caligraphic etc
+\newcommand{\ee}{\mathbb{E}}
+\newcommand{\eps}{\epsilon}
+\newcommand{\sig}{\sigma^2}
+\newcommand{\nn}{\mathcal{N}}
+\newcommand{\rr}{\mathbb{R}}
+\newcommand{\cov}{\text{cov}}
+\newcommand{\dd}{\mathcal{D}}
+\newcommand{\var}{\text{Var}} 
+\newcommand{\post}{\text{post}} % posterior
+\newcommand{\norm}[1]{||#1||} %norm
+\newcommand{\tr}{\text{tr}}
+\newcommand{\fac}{\frac{1}{ \sigma^4 + 2\sig} }
+
+
+
+\begin{document}
+ 
+\section{Experimental Design}
+
+We use the following model:
+\begin{itemize}
+ \item $Y_1 , Y_2 \sim\nn (0,1)$ and $\cov(Y_1 , Y_2 )  = \rho$. These are the ``real'' values.
+ \item $X_1^1 = Y_1 + \eps_1$. This is the first noisy measurement of $Y_1$.
+ \item $X_1^2 = Y_1 + \eps_2$. This is the second measurement of $Y_1$.
+ \item $X_2^1 = Y_2 + \eps_3$. This is the first measurement of $Y_2$.
+ \item $\eps_i \sim \nn (0 , \sig)$ are iid.
+\end{itemize}
+This implies the following covariance structure:
+
+\[
+\begin{bmatrix}
+ Y_1    \\
+  Y_2   \\
+  X_1^1 \\
+  X_1^2 \\
+  X_2^1 \\
+\end{bmatrix}
+\sim \nn \left ( 0 , 
+\begin{bmatrix}   
+1      &   \rho   &   1      &   1      & \rho    \\
+\rho   &   1      &   \rho   &   \rho   & 1       \\ 
+1      &   \rho   &   1+\sig &   1      & \rho    \\
+1      &   \rho   &   1      &   1+\sig & \rho    \\
+\rho   &   1      &   \rho   &   \rho   & 1+\sig  \\
+\end{bmatrix}
+\right )
+\]
+
+This follows readily from the above definitions. 
+
+\subsection{Two observations at the same ``location''}
+Define:
+\[
+\begin{bmatrix}
+ A   & C    \\
+ C^t & B    \\
+\end{bmatrix}
+= 
+\begin{bmatrix}   
+1      &   \rho   &   1      &   1        \\
+\rho   &   1      &   \rho   &   \rho     \\ 
+1      &   \rho   &   1+\sig &   1        \\
+1      &   \rho   &   1      &   1+\sig   \\
+\end{bmatrix}
+\].
+
+We get that 
+
+\[
+\begin{bmatrix}
+ Y_1    \\
+  Y_2   \\
+  X_1^1 \\
+  X_1^2 \\
+\end{bmatrix}
+\sim \nn \left ( 0 , 
+\begin{bmatrix}   
+A      &   C       \\
+C^t    &   B    \\ 
+\end{bmatrix}
+\right )
+\]
+
+We condition on $X_1^1 , X_1^2$. The posterior (conditional) covariance matrix is $A - CB^{-1}C^t$ 
+(formula A.6 from the Gaussian Processes for Machine Learning book, page 200). The 
+total variance is just the sum of variances, which is the trace. Note that
+\[
+C^tC = (1 +\rho^2)
+\begin{bmatrix}   
+ 1    &   1  \\
+ 1    &   1  \\ 
+\end{bmatrix} 
+\ , \
+B^{-1}
+= \fac
+\begin{bmatrix}   
+ 1+\sig &   -1        \\
+ -1      &   1+\sig   \\
+\end{bmatrix}
+\]
+
+\begin{align}
+ \begin{split}
+\var_{\post} &= \tr( A - CB^{-1}C^t)  \\
+  &= \tr(A) - \tr(C^tCB^{-1}) \\
+  &= 2- \frac{1+\rho^2}{\sigma^4 + 2\sig}\tr \left (
+\begin{bmatrix}   
+ \sig    &   \sig  \\
+ \sig    &   \sig  \\ 
+\end{bmatrix} 
+\right )\\
+%
+&= 2 - 2\frac{1+\rho^2}{\sig + 2}\\
+ \end{split}
+\end{align}
+
+Sanity check: take $\rho ,\sig \to 0$ and get that the variance is $1$, which is what we'd expect.
+
+
+
+
+
+\subsection{Two observations at different ``locations''}
+Now define (here $C$ is different than before):
+
+\[
+\begin{bmatrix}
+ A   & C    \\
+ C^t & B    \\
+\end{bmatrix}
+= 
+\begin{bmatrix}   
+1      &   \rho   &   1      &   \rho    \\
+\rho   &   1      &   \rho   &   1       \\ 
+1      &   \rho   &   1+\sig &   \rho    \\
+\rho   &   1      &   \rho   &   1+\sig  \\
+\end{bmatrix}
+\].
+
+We get that
+\[
+\begin{bmatrix}
+ Y_1    \\
+  Y_2   \\
+  X_1^1 \\
+  X_2^1 \\
+\end{bmatrix}
+\sim \nn \left ( 0 , 
+\begin{bmatrix}   
+A      &   C       \\
+C^t    &   B    \\ 
+\end{bmatrix}
+\right )
+\]
+
+
+
+We condition on $X_1^1 , X_2^1$. The posterior (conditional) covariance is $A - CB^{-1}C^t$ like before. The 
+total variance is just the sum of variances, which is the trace. Note that
+\[
+C^tC = 
+\begin{bmatrix}   
+ (1 +\rho^2)    &   2\rho  \\
+ 2\rho          &   (1 +\rho^2) \\ 
+\end{bmatrix} 
+\ , \
+B^{-1}
+= \frac{1}{ \sigma^4 + 2\sig + 1 -\rho^2 }
+\begin{bmatrix}   
+ 1+\sig &   -\rho        \\
+ -\rho      &   1+\sig   \\
+\end{bmatrix}
+\]
+
+We calculate the product, caring only for diagonal elements:
+
+\begin{align}
+ \begin{split}
+C^tC B^{-1} &= 
+\frac{1}{ \sigma^4 + 2\sig + 1 -\rho^2 }
+\begin{bmatrix}   
+ (1 +\rho^2)    &   2\rho  \\
+ 2\rho          &   (1 +\rho^2) \\ 
+\end{bmatrix} 
+\cdot
+\begin{bmatrix}   
+ 1+\sig &   -\rho        \\
+ -\rho      &   1+\sig   \\
+\end{bmatrix} 
+\\
+&= \frac{1}{ \sigma^4 + 2\sig + 1 -\rho^2 }
+  \begin{bmatrix}   
+  (1 +\rho^2)(1+\sig) -2\rho^2    &   *                            \\
+  *                               &  (1 +\rho^2)(1+\sig) -2\rho^2  \\ 
+  \end{bmatrix} 
+ \end{split}
+\end{align}
+
+Consequently,
+
+\begin{align}
+ \begin{split}
+  \var_{\post} &= \tr(A- CB^{-1}C^t )\\
+  &= 2 - 2\frac{(1 +\rho^2)(1+\sig) -2\rho^2}{ \sigma^4 + 2\sig + 1 -\rho^2 } \\
+  &= 2 - 2\frac{1 +\rho^2 + \sig + \rho^2 \sig -2\rho^2}{ \sigma^4 + 2\sig + 1 -\rho^2 } \\
+  &= 2 - 2\frac{ \sigma^4  + 2\sig +  1  -\rho^2 + \rho^2 \sig  -\sigma^4 - \sig}{ \sigma^4 + 2\sig + 1 -\rho^2 } \\
+  &= 2\frac{   \sigma^4 + \sig - \rho^2 \sig}{ \sigma^4 + 2\sig + 1 -\rho^2 } \\
+  &= 2\sig\frac{ \sig + 1 - \rho^2 }{ \sigma^4 + 2\sig + 1 -\rho^2 } \\
+ \end{split}
+\end{align}
+
+Sanity check: if we just let $\sig  \to 0$, we get zero variance, which we would expect. If we take $\rho = 0$ (which means $Y_1, Y_2$ are independent),
+we get $\var_{\post} = \frac{2\sig}{1+\sig}$. If we just considered $Y_1$ and $X_1^1$ we would get the posterior variance of
+$Y_1 | X_1^1$ to be $\frac{\sig}{1+\sig}$. So the above result is reasonable.
+\end{document}
+
