@@ -7,4 +7,6 @@ clean:
 
 push:
 	git push https://github.com/yairdaon/xpd.git
-	
+
+run:
+	python2.7 covariances.py &	
